@@ -115,12 +115,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="CSR_Matrix.cpp" />
     <ClCompile Include="Matrix.cpp" />
     <ClCompile Include="Source.cpp" />
     <ClCompile Include="Triangulation.cpp" />
     <ClCompile Include="Vector.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CSR_Matrix.h" />
     <ClInclude Include="Matrix.h" />
     <ClInclude Include="Struct.h" />
     <ClInclude Include="Triangulation.h" />

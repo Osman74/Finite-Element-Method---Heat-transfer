@@ -1,9 +1,10 @@
 ﻿#include "Matrix.h"
+#include "CSR_Matrix.h"
 #include "Triangulation.h"
 #include <iostream>
 #include <fstream>
 
-Vector findLocalVector(const Element& element)
+Vector local_fk(const Element& element)
 {
 	Vector localVector(3);
 
@@ -15,18 +16,18 @@ Vector findLocalVector(const Element& element)
 	double z2 = element.nodesCoordinates[1].z;
 	double z3 = element.nodesCoordinates[2].z;
 
-	double coef = (1 / 120)*((ro1 - ro3)*(z2 - z3) - (ro2 - ro3)*(z1 - z3));
+	double coef = (1 / 60)*((ro1 - ro3)*(z2 - z3) - (ro2 - ro3)*(z1 - z3));
 
 	Matrix phi_phi_t(3, 3);
-	phi_phi_t.setElement(0, 0, 6. * ro1 + 2. * ro2 + 2. * ro3);
-	phi_phi_t.setElement(0, 1, 2. * ro1 + 2. * ro2 + ro3);
-	phi_phi_t.setElement(0, 2, 2. * ro1 + ro2 + 2. * ro3);
-	phi_phi_t.setElement(1, 0, 2. * ro1 + 2. * ro2 + ro3);
-	phi_phi_t.setElement(1, 1, 2. * ro1 + 6. * ro2 + 2. * ro3);
-	phi_phi_t.setElement(1, 2, ro1 + 2. * ro2 + 2. * ro3);
-	phi_phi_t.setElement(2, 0, 2. * ro1 + ro2 + 2. * ro3);
-	phi_phi_t.setElement(2, 1, ro1 + 2. * ro2 + 2. * ro3);
-	phi_phi_t.setElement(2, 2, 2. * ro1 + 2. * ro2 + 6. * ro3);
+	phi_phi_t.setElement(0, 0, 3 * ro1 + 1 * ro2 + 1 * ro3);
+	phi_phi_t.setElement(0, 1, 1 * ro1 + 1 * ro2 + ro3 / 2);
+	phi_phi_t.setElement(0, 2, 1 * ro1 + ro2 / 2 + 1 * ro3);
+	phi_phi_t.setElement(1, 0, 1 * ro1 + 1 * ro2 + ro3 / 2);
+	phi_phi_t.setElement(1, 1, 1 * ro1 + 3 * ro2 + 1 * ro3);
+	phi_phi_t.setElement(1, 2, ro1 / 2 + 1 * ro2 + 1 * ro3);
+	phi_phi_t.setElement(2, 0, 1 * ro1 + ro2 / 2 + 1 * ro3);
+	phi_phi_t.setElement(2, 1, ro1 / 2 + 1 * ro2 + 1 * ro3);
+	phi_phi_t.setElement(2, 2, 1 * ro1 + 1 * ro2 + 3 * ro3);
 
 	Vector Tk(3);
 
@@ -36,7 +37,7 @@ Vector findLocalVector(const Element& element)
 	return localVector;
 }
 
-Vector findLocalVectorForBE_1(
+Vector local_fk_BE_1(
 	const Element& element,
 	const double& q_e, const double& alpha_T, const double& teta_inf)
 {
@@ -66,7 +67,6 @@ Vector findLocalVectorForBE_1(
 	for (int i = 0; i < 3; i++)
 		Tk[i] = q_e;
 
-	//���������� ������ ��������
 	localVector = phi_phi_t_ro * Tk;
 	localVector = localVector * coef;
 
@@ -77,14 +77,13 @@ Vector findLocalVectorForBE_1(
 	phi_ro[1] = 2. * ro2 + ro3;
 	phi_ro[2] = ro2 + 2. * ro3;
 
-	//���������� ������ ��������
 	localVector += (phi_ro * coef);
 	localVector = localVector * (-1.);
 
 	return localVector;
 }
 
-Vector findLocalVectorForBE_2(
+Vector local_fk_BE_2(
 	const Element& element,
 	const double& q_e, const double& alpha_T, const double& teta_inf)
 {
@@ -131,7 +130,7 @@ Vector findLocalVectorForBE_2(
 	return localVector;
 }
 
-Vector findLocalVectorForBE_3(
+Vector local_fk_BE_3(
 	const Element& element,
 	const double& q_e, const double& alpha_T, const double& teta_inf)
 {
@@ -178,7 +177,7 @@ Vector findLocalVectorForBE_3(
 	return localVector;
 }
 
-Matrix findLocalMatrixForBE_1(
+Matrix local_Gk_BE_1(
 	const Element& element, const double& alpha_T)
 {
 	Matrix localMatrix(3, 3);
@@ -208,7 +207,7 @@ Matrix findLocalMatrixForBE_1(
 	return localMatrix;
 }
 
-Matrix findLocalMatrixForBE_2(
+Matrix local_Gk_BE_2(
 	const Element& element, const double& alpha_T)
 {
 	Matrix localMatrix(3, 3);
@@ -238,7 +237,7 @@ Matrix findLocalMatrixForBE_2(
 	return localMatrix;
 }
 
-Matrix findLocalMatrixForBE_3(
+Matrix local_Gk_BE_3(
 	const Element& element, const double& alpha_T)
 {
 	Matrix localMatrix(3, 3);
@@ -268,7 +267,7 @@ Matrix findLocalMatrixForBE_3(
 	return localMatrix;
 }
 
-Matrix findLocalMatrix(const Element& element, const double& lambda)
+Matrix local_Gk(const Element& element, const double& lambda)
 {
 	Matrix localMatrix(3, 3);
 
@@ -331,7 +330,7 @@ Matrix findLocalMatrix(const Element& element, const double& lambda)
 	return localMatrix;
 }
 
-Vector solveGlobalSLE(const Matrix& globalMatrix, const Vector& globalVector)
+Vector ConjugateGradientMethod(const CSR_Matrix& globalMatrix, const Vector& globalVector)
 {
 	Vector x(globalVector.getSize());
 	Vector r = globalVector - globalMatrix * x;
@@ -369,11 +368,11 @@ int main()
 	Triangulation triangulation = Triangulation::createTriangulation(ro_0, ro_N, z_0, z_M, N, M);
 
 	Vector globalVector(N*M);
-	Matrix globalMatrix((N*M), (N*M));
+	CSR_Matrix globalMatrix((N*M));
 
 	for (const auto& element : triangulation.elements)
 	{
-		Vector localVector = findLocalVector(element);
+		Vector localVector = local_fk(element);
 		for (int i = 0; i < 3; i++)
 			globalVector.addValue((element.getGlobalID(i)), localVector[i]);
 	}
@@ -385,19 +384,19 @@ int main()
 			Vector localVector(3);
 			if (triangulation.nodes[element.nodesGlobalID[0]].qBoundery == false)
 			{
-				localVector = findLocalVectorForBE_1(element, q_e, alpha_T, teta_inf);
+				localVector = local_fk_BE_1(element, q_e, alpha_T, teta_inf);
 				globalVector.addValue((element.getGlobalID(1)), localVector[1]);
 				globalVector.addValue((element.getGlobalID(2)), localVector[2]);
 			}
 			if (triangulation.nodes[element.nodesGlobalID[1]].qBoundery == false)
 			{
-				localVector = findLocalVectorForBE_2(element, q_e, alpha_T, teta_inf);
+				localVector = local_fk_BE_2(element, q_e, alpha_T, teta_inf);
 				globalVector.addValue((element.getGlobalID(0)), localVector[0]);
 				globalVector.addValue((element.getGlobalID(2)), localVector[2]);
 			}
 			if (triangulation.nodes[element.nodesGlobalID[2]].qBoundery == false)
 			{
-				localVector = findLocalVectorForBE_3(element, q_e, alpha_T, teta_inf);
+				localVector = local_fk_BE_3(element, q_e, alpha_T, teta_inf);
 				globalVector.addValue((element.getGlobalID(0)), localVector[0]);
 				globalVector.addValue((element.getGlobalID(1)), localVector[1]);
 			}
@@ -428,11 +427,11 @@ int main()
 			Matrix localMatrix(3, 3);
 
 			if (triangulation.nodes[element.nodesGlobalID[0]].qBoundery == false)
-				localMatrix = findLocalMatrixForBE_1(element, alpha_T);
+				localMatrix = local_Gk_BE_1(element, alpha_T);
 			if (triangulation.nodes[element.nodesGlobalID[1]].qBoundery == false)
-				localMatrix = findLocalMatrixForBE_2(element, alpha_T);
+				localMatrix = local_Gk_BE_2(element, alpha_T);
 			if (triangulation.nodes[element.nodesGlobalID[2]].qBoundery == false)
-				localMatrix = findLocalMatrixForBE_3(element, alpha_T);
+				localMatrix = local_Gk_BE_3(element, alpha_T);
 
 			for (int i = 0; i < 3; i++)
 			{
@@ -456,7 +455,7 @@ int main()
 	for (auto element : triangulation.elements)
 	{
 		Matrix localMatrix(3, 3);
-		localMatrix = findLocalMatrix(element, lambda);
+		localMatrix = local_Gk(element, lambda);
 		std::cout << localMatrix << std::endl;
 		for (int i = 0; i < 3; i++)
 		{
@@ -476,7 +475,7 @@ int main()
 		}
 	}
 	std::cout << globalVector << std::endl;
-	Vector teta = solveGlobalSLE(globalMatrix, globalVector);
+	Vector teta = ConjugateGradientMethod(globalMatrix, globalVector);
 
 	std::ofstream out("res.mv2");
 	int nodesSize = triangulation.nodes.size();
