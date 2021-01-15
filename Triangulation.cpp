@@ -24,7 +24,6 @@ Triangulation Triangulation::createTriangulation(
 			IDCounter++;
 			newNode.ro = ro_0 + roStep * roStepNumber;
 			newNode.z = z_0 + zStep * zStepNumber;
-
 			if ((roStepNumber == 0) || (roStepNumber == (nodeNumberRo - 1)))
 				newNode.qBoundery = true;
 			if ((zStepNumber == 0) || (zStepNumber == (nodeNumberZ - 1)))
@@ -64,7 +63,6 @@ Triangulation Triangulation::createTriangulation(
 				(roNodeNumber - 1) * nodeNumberZ + (zNodeNumber + 1)).qBoundery == true)
 				newElement1.numberQBounderyNodes++;
 			triangulation.elements.push_back(newElement1);
-
 			Element newElement2;
 			newElement2.elementID = elementCounter;
 			elementCounter++;

@@ -30,10 +30,8 @@ Vector local_fk(const Element& element)
 	phi_phi_t.setElement(2, 2, 1 * ro1 + 1 * ro2 + 3 * ro3);
 
 	Vector Tk(3);
-
 	localVector = phi_phi_t * Tk;
 	localVector = localVector * coef;
-
 	return localVector;
 }
 
@@ -79,7 +77,6 @@ Vector local_fk_BE_1(
 
 	localVector += (phi_ro * coef);
 	localVector = localVector * (-1.);
-
 	return localVector;
 }
 
@@ -126,7 +123,6 @@ Vector local_fk_BE_2(
 	localVector += (phi_ro * coef);
 
 	localVector = localVector * (-1.);
-
 	return localVector;
 }
 
@@ -173,7 +169,6 @@ Vector local_fk_BE_3(
 	localVector += (phi_ro * coef);
 
 	localVector = localVector * (-1.);
-
 	return localVector;
 }
 
@@ -354,8 +349,8 @@ int main()
 {
 	double ro_0 = 300, ro_N = 320;
 	double z_0 = 0, z_M = 200;
-	int N = 10; //число элементов по ro
-	int M = 10; //число элементов по z
+	int N = 2; //число элементов по ro
+	int M = 3; //число элементов по z
 
 	double lambda = 135.;
 	double q_m = 0.;
@@ -456,7 +451,6 @@ int main()
 	{
 		Matrix localMatrix(3, 3);
 		localMatrix = local_Gk(element, lambda);
-		std::cout << localMatrix << std::endl;
 		for (int i = 0; i < 3; i++)
 		{
 
@@ -474,7 +468,7 @@ int main()
 			}
 		}
 	}
-	std::cout << globalVector << std::endl;
+
 	Vector teta = ConjugateGradientMethod(globalMatrix, globalVector);
 
 	std::ofstream out("res.mv2");

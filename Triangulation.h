@@ -1,7 +1,7 @@
 #pragma once
 #include <vector>
 #include "Struct.h"
-
+#include <iostream>
 class Triangulation
 {	
 public:

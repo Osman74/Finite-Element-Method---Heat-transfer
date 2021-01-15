@@ -7,7 +7,7 @@ class Vector
 	int size;
 	double* elem;
 public:
-	explicit Vector(int dim);
+	Vector(int dim);
 	Vector(const Vector &vec);
 
 	void addValue(unsigned int pos, double val);
