@@ -5,6 +5,8 @@ Triangulation Triangulation::createTriangulation(
 	double z_0, double z_M,
 	int nodeNumberRo, int nodeNumberZ)
 {
+	nodeNumberRo = 2 + int(nodeNumberRo/100);
+	nodeNumberZ = 3 + int(nodeNumberZ / 100);
 	Triangulation triangulation;
 	triangulation.ro_0 = ro_0;
 	triangulation.ro_N = ro_N;

@@ -1,8 +1,2 @@
-﻿  Source.cpp
-c:\users\shakhmanaev\source\repos\hw2\hw2\matrix.h(31): warning C4018: <: несоответствие типов со знаком и без знака
-c:\users\shakhmanaev\source\repos\hw2\hw2\source.cpp(406): warning C4018: <: несоответствие типов со знаком и без знака
-c:\users\shakhmanaev\source\repos\hw2\hw2\source.cpp(409): warning C4244: аргумент: преобразование "double" в "int", возможна потеря данных
-c:\users\shakhmanaev\source\repos\hw2\hw2\source.cpp(411): warning C4244: аргумент: преобразование "double" в "int", возможна потеря данных
-c:\users\shakhmanaev\source\repos\hw2\hw2\source.cpp(443): warning C4244: аргумент: преобразование "double" в "int", возможна потеря данных
-c:\users\shakhmanaev\source\repos\hw2\hw2\source.cpp(466): warning C4244: аргумент: преобразование "double" в "int", возможна потеря данных
+﻿  Triangulation.cpp
   HW2.vcxproj -> C:\Users\shakhmanaev\source\repos\HW2\Debug\HW2.exe

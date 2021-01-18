@@ -349,14 +349,14 @@ int main()
 {
 	double ro_0 = 300, ro_N = 320;
 	double z_0 = 0, z_M = 200;
-	int N = 2; //число элементов по ro
-	int M = 3; //число элементов по z
+	int N = 10; //число элементов по ro
+	int M = 10; //число элементов по z
 
 	double lambda = 135.;
 	double q_m = 0.;
 	double ro0 = 10210.;
 	double q_e = 30.;
-	double alpha_T = 10.;
+	double alpha_T = 10;
 	double teta_inf = 273.15;
 	double teta_e = 298.15;
 
@@ -447,27 +447,27 @@ int main()
 		}
 	}
 
-	for (auto element : triangulation.elements)
-	{
-		Matrix localMatrix(3, 3);
-		localMatrix = local_Gk(element, lambda);
-		for (int i = 0; i < 3; i++)
-		{
+	//for (auto element : triangulation.elements)
+	//{
+	//	Matrix localMatrix(3, 3);
+	//	localMatrix = local_Gk(element, lambda);
+	//	for (int i = 0; i < 3; i++)
+	//	{
 
-			if (triangulation.nodes[element.getGlobalID(i)].tetaBoundery == false)
-			{
-				for (int j = 0; j < 3; j++)
-				{
-					if (triangulation.nodes[element.getGlobalID(j)].tetaBoundery == true)
-						globalVector[element.getGlobalID(i)]
-						-= localMatrix.getElements()[i][j] * globalVector[element.getGlobalID(j)];
-					else
-						globalMatrix.addElement(element.getGlobalID(i),
-							element.getGlobalID(j), localMatrix.getElements()[i][j]);
-				}
-			}
-		}
-	}
+	//		if (triangulation.nodes[element.getGlobalID(i)].tetaBoundery == false)
+	//		{
+	//			for (int j = 0; j < 3; j++)
+	//			{
+	//				if (triangulation.nodes[element.getGlobalID(j)].tetaBoundery == true)
+	//					globalVector[element.getGlobalID(i)]
+	//					-= localMatrix.getElements()[i][j] * globalVector[element.getGlobalID(j)];
+	//				else
+	//					globalMatrix.addElement(element.getGlobalID(i),
+	//						element.getGlobalID(j), localMatrix.getElements()[i][j]);
+	//			}
+	//		}
+	//	}
+	//}
 
 	Vector teta = ConjugateGradientMethod(globalMatrix, globalVector);
 
