@@ -274,51 +274,31 @@ Matrix local_Gk(const Element& element, const double& lambda)
 	double z2 = element.nodesCoordinates[1].z;
 	double z3 = element.nodesCoordinates[2].z;
 
+	double vec_a[] = { ro2 - ro1, z2 - z1 };
+	double vec_b[] = { ro3 - ro1, z3 - z1 };
+	double vec_c[] = { ro3 - ro2, z3 - z2 };
+
+	// Производные от функций формы по декартовым координам
+	double phi1_1 = vec_a[1] / (vec_a[0] * vec_b[1] - vec_a[1] * vec_b[0]) - vec_b[1] / (vec_a[0] * vec_b[1] - vec_a[1] * vec_b[0]);
+	double phi1_2 = -vec_a[0] / (vec_a[0] * vec_b[1] - vec_a[1] * vec_b[0]) + vec_b[0] / (vec_a[0] * vec_b[1] - vec_a[1] * vec_b[0]);
+	double phi2_1 = vec_b[1] / (vec_a[0] * vec_b[1] - vec_a[1] * vec_b[0]);
+	double phi2_2 = -vec_b[0] / (vec_a[0] * vec_b[1] - vec_a[1] * vec_b[0]);
+	double phi3_1 = -vec_a[1] / (vec_a[0] * vec_b[1] - vec_a[1] * vec_b[0]);
+	double phi3_2 = vec_a[0] / (vec_a[0] * vec_b[1] - vec_a[1] * vec_b[0]);
+
 	double coef = (ro1 + ro2 + ro3)*((ro1 - ro3)*(z2 - z3) - (ro2 - ro3)*(z1 - z3)) / 6;
 
 	Matrix mLambda(2, 2);
 	mLambda.setElement(0, 0, lambda);
 	mLambda.setElement(1, 1, lambda);
 
-	Matrix A_reverse(3, 3);
-	double det_A = (ro2 * z3 - ro3 * z2) - ro1 * (z3 - z2) + z1 * (ro3 - ro2);
-	A_reverse.setElement(0, 0, (ro2 * z3 - ro3 * z2) / det_A);
-	A_reverse.setElement(0, 1, -(ro1 * z3 - ro3 * z1) / det_A);
-	A_reverse.setElement(0, 2, (ro1 * z2 - ro2 * z1) / det_A);
-	A_reverse.setElement(1, 0, (z2 - z3) / det_A);
-	A_reverse.setElement(1, 1, -(z1 - z3) / det_A);
-	A_reverse.setElement(1, 2, (z1 - z2) / det_A);
-	A_reverse.setElement(2, 0, -(ro2 - ro3) / det_A);
-	A_reverse.setElement(2, 1, (ro1 - ro3) / det_A);
-	A_reverse.setElement(2, 2, (ro1 - ro2) / det_A);
-
-	Vector b1(3);
-	Vector b2(3);
-	Vector b3(3);
-	b1[0] = 1;
-	b1[1] = 0;
-	b1[2] = 0;
-	b2[0] = 0;
-	b2[1] = 1;
-	b2[2] = 0;
-	b3[0] = 0;
-	b3[1] = 0;
-	b3[2] = 1;
-
-	Vector X1(3);
-	Vector X2(3);
-	Vector X3(3);
-	X1 = A_reverse * b1;
-	X2 = A_reverse * b2;
-	X3 = A_reverse * b3;
-
 	Matrix Bk(2, 3);
-	Bk.setElement(0, 0, X1[1]);
-	Bk.setElement(0, 1, X2[1]);
-	Bk.setElement(0, 2, X3[1]);
-	Bk.setElement(1, 0, X1[2]);
-	Bk.setElement(1, 1, X2[2]);
-	Bk.setElement(1, 2, X3[2]);
+	Bk.setElement(0, 0, phi1_1);
+	Bk.setElement(0, 1, phi2_1);
+	Bk.setElement(0, 2, phi3_1);
+	Bk.setElement(1, 0, phi1_2);
+	Bk.setElement(1, 1, phi2_2);
+	Bk.setElement(1, 2, phi3_2);
 
 	localMatrix = Bk.transpose() * mLambda * Bk * coef;
 
@@ -331,7 +311,7 @@ Vector ConjugateGradientMethod(const CSR_Matrix& globalMatrix, const Vector& glo
 	Vector r = globalVector - globalMatrix * x;
 	Vector z = r;
 
-	double epsilon = 0.0000001;
+	double epsilon = 1e-10;
 	do
 	{
 		double alpha = (r * r) / ((globalMatrix * z) * z);
@@ -349,14 +329,14 @@ int main()
 {
 	double ro_0 = 300, ro_N = 320;
 	double z_0 = 0, z_M = 200;
-	int N = 10; //число элементов по ro
-	int M = 10; //число элементов по z
+	int N = 11; //число элементов по ro
+	int M = 101; //число элементов по z
 
 	double lambda = 135.;
 	double q_m = 0.;
 	double ro0 = 10210.;
 	double q_e = 30.;
-	double alpha_T = 10;
+	double alpha_T = 0;
 	double teta_inf = 273.15;
 	double teta_e = 298.15;
 
@@ -415,59 +395,25 @@ int main()
 
 	for (auto element : triangulation.elements)
 	{
-
-		if (element.numberQBounderyNodes == 2)
+		Matrix localMatrix(3, 3);
+		localMatrix = local_Gk(element, lambda);
+		for (int i = 0; i < 3; i++)
 		{
 
-			Matrix localMatrix(3, 3);
-
-			if (triangulation.nodes[element.nodesGlobalID[0]].qBoundery == false)
-				localMatrix = local_Gk_BE_1(element, alpha_T);
-			if (triangulation.nodes[element.nodesGlobalID[1]].qBoundery == false)
-				localMatrix = local_Gk_BE_2(element, alpha_T);
-			if (triangulation.nodes[element.nodesGlobalID[2]].qBoundery == false)
-				localMatrix = local_Gk_BE_3(element, alpha_T);
-
-			for (int i = 0; i < 3; i++)
+			if (triangulation.nodes[element.getGlobalID(i)].tetaBoundery == false)
 			{
-				if (triangulation.nodes[element.getGlobalID(i)].tetaBoundery == false)
+				for (int j = 0; j < 3; j++)
 				{
-					for (int j = 0; j < 3; j++)
-					{
-						if (triangulation.nodes[element.getGlobalID(j)].tetaBoundery == true)
-							globalVector[element.getGlobalID(i)]
-							-= localMatrix.getElements()[i][j] * globalVector[element.getGlobalID(j)];
-						else
-
-							globalMatrix.addElement(element.getGlobalID(i),
-								element.getGlobalID(j), localMatrix.getElements()[i][j]);
-					}
+					if (triangulation.nodes[element.getGlobalID(j)].tetaBoundery == true)
+						globalVector[element.getGlobalID(i)]
+						-= localMatrix.getElements()[i][j] * globalVector[element.getGlobalID(j)];
+					else
+						globalMatrix.addElement(element.getGlobalID(i),
+							element.getGlobalID(j), localMatrix.getElements()[i][j]);
 				}
 			}
 		}
 	}
-
-	//for (auto element : triangulation.elements)
-	//{
-	//	Matrix localMatrix(3, 3);
-	//	localMatrix = local_Gk(element, lambda);
-	//	for (int i = 0; i < 3; i++)
-	//	{
-
-	//		if (triangulation.nodes[element.getGlobalID(i)].tetaBoundery == false)
-	//		{
-	//			for (int j = 0; j < 3; j++)
-	//			{
-	//				if (triangulation.nodes[element.getGlobalID(j)].tetaBoundery == true)
-	//					globalVector[element.getGlobalID(i)]
-	//					-= localMatrix.getElements()[i][j] * globalVector[element.getGlobalID(j)];
-	//				else
-	//					globalMatrix.addElement(element.getGlobalID(i),
-	//						element.getGlobalID(j), localMatrix.getElements()[i][j]);
-	//			}
-	//		}
-	//	}
-	//}
 
 	Vector teta = ConjugateGradientMethod(globalMatrix, globalVector);
 
